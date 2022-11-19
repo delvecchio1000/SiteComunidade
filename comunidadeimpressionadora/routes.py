@@ -6,6 +6,9 @@ from comunidadeimpressionadora import app, database, bcrypt
 from comunidadeimpressionadora.forms import FormLogin, FormCriarConta, FormEditarPerfil
 from comunidadeimpressionadora.models import Usuario
 from flask_login import login_user, logout_user, current_user, login_required
+import secrets
+import os
+from PIL import Image
 
 lista_usuarios = ['Lira', 'João', 'Alon', 'Alessandra', 'Amanda']
 
@@ -70,6 +73,28 @@ def perfil():
 def criar_post():
     return render_template('criarpost.html')
 
+def salvar_imagem(imagem):
+    # adicionar um código aleatório no nome da imagem
+    codigo = secrets.token_hex(8) #gera um código de 8 bytes
+    # separar o nome do arquivo da extensão dele
+    nome, extensao = os.path.splitext(imagem.filename)
+    #agora juntando o nome+código+extensão
+    #nome_completo = os.path.join(nome, codigo, extensao)
+    nome_arquivo = nome + codigo + extensao
+    #agora preciso estabelecer o caminho de onde a imagem se encontra
+    caminho_completo = os.path.join(app.root_path, 'static/fotos_perfil', nome_arquivo)
+    # reduzir o tamanho da imagem. Será uma tupla (tamanho x altura)
+    tamanho = (200,200) #Primeiro definir essa tupla. São as dimensões da imagem definidas lá no nosso perfil.html
+    #reduzindo efetivamente. Mas...
+    #Temos que instalar o 'Pillow' (pip install Pillow). É uma biblioteca para compactar imagem
+    imagem_reduzida = Image.open(imagem)
+    imagem_reduzida.thumbnail(tamanho)
+    # salvar a imagem na pasta fotos_perfil
+    imagem_reduzida.save(caminho_completo)
+    # mudar o campo foto_perfil do usuário para o novo nome da imagem
+    return nome_arquivo
+
+
 @app.route('/perfil/editar', methods=['GET', 'POST'])
 @login_required
 def editar_perfil():
@@ -77,6 +102,14 @@ def editar_perfil():
     if form.validate_on_submit():
         current_user.email = form.email.data
         current_user.username = form.username.data
+        if form.foto_perfil.data:
+            #adicionar um código aleatório no nome da imagem
+            #reduzir o tamanho da imagem
+            #salvar a imagem na pasta fotos_perfil
+            #mudar o campo foto_perfil do usuário para o novo nome da imagem
+            #MAS TODOS ESSES PASSOS ACIMA SE RESUMEM NO FUNÇÃO DA LINHA 76
+            nome_imagem = salvar_imagem(form.foto_perfil.data)
+            current_user.foto_perfil = nome_imagem
         database.session.commit()
         flash(f'Perfil atualizado com sucesso', 'alert-success')
         return redirect(url_for('perfil'))
