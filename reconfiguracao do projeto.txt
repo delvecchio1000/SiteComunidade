@@ -1,0 +1,131 @@
+Reconfigurando a estrutura do SiteComunidade para evitar erros de dependências de arquivos
+
+1 - Criação da pasta comunidadeimpressionadora (que é o nome do projeto agora)
+
+2 - criação do arquivo __init__.py
+
+3 - Retirando as linhas abaixo do arquivo main.py e colando no arquivo __init__.py:
+from flask import Flask, render_template, url_for, request, flash, redirect
+from forms import FormLogin, FormCriarConta
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+
+lista_usuarios = ['Lira', 'João', 'Alon', 'Alessandra', 'Amanda']
+
+app.config['SECRET_KEY'] = '3ac9b3a5750f8a5960cff8f039aacca3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///comunidade.db'
+
+database = SQLAlchemy(app)
+
+4 - Deixar aberto apenas o arquivo __init__.py para trabalhar nele
+
+5 - Arrastar o arquivo forms.py para dentro da pasta comunidadeimpressionadora e dando o refactor
+
+6 - Arrastar o arquivo models.py para dentro da pasta comunidadeimpressionadora e dando o refactor
+
+7 - Arrastar a pasta templates para dentro da pasta comunidadeimpressionadora e dando o refactor
+
+8 - Deletar o banco de dados. Mais pra frente será criado automaticamente. Desmarcar as caixas de seleção
+
+9 - Dentro de comunidadeimpressionadora, criar o arquivo routes.py
+
+10 - Recortar as linhas do arquivo main.py:
+# LINKS
+# ROUTES
+
+@app.route('/')
+def home():
+    return render_template('home.html')
+
+@app.route('/contato')
+def contato():
+    return render_template('contato.html')
+
+@app.route('/usuarios')
+def usuarios():
+    return render_template('usuarios.html', lista_usuarios=lista_usuarios)
+
+@app.route('/login', methods=['GET', 'POST'])
+def login():
+    form_login = FormLogin()
+    form_criarconta = FormCriarConta()
+
+    if form_login.validate_on_submit() and 'botao_submit_login' in request.form:
+        flash(f'Login feito com sucesso no e-mail: {form_login.email.data}', 'alert-success')
+        return redirect(url_for('home'))
+    if form_criarconta.validate_on_submit() and 'botao_submit_criarconta' in request.form:
+        flash(f'Conta criada para o e-mail: {form_criarconta.email.data}', 'alert-success')
+        return redirect(url_for('home'))
+    return render_template('login.html', form_login=form_login, form_criarconta=form_criarconta)
+
+11 - Colá-las no arquivo routes.py
+
+     Ajeitando todas as importações
+
+12 - No arquivo main.py fazer a seguinte inclusão:
+from comunidadeimpressionadora import app
+
+13 - No arquivo __init__.py deixá-lo assim:
+from flask import Flask
+from flask_sqlalchemy import SQLAlchemy
+
+app = Flask(__name__)
+
+lista_usuarios = ['Lira', 'João', 'Alon', 'Alessandra', 'Amanda']
+
+app.config['SECRET_KEY'] = '3ac9b3a5750f8a5960cff8f039aacca3'
+app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///comunidade.db'
+
+database = SQLAlchemy(app)
+
+14 - No arquivo forms.py deixá-lo assim: (na verdade não mudou nada)
+from flask_wtf import FlaskForm
+from wtforms import  StringField, PasswordField, SubmitField, BooleanField
+from wtforms.validators import DataRequired, Length, Email, EqualTo
+
+class FormCriarConta(FlaskForm):
+    username = StringField('Nome de Usuário', validators=[DataRequired()])
+    email = StringField('E-mail', validators=[DataRequired(), Email()])
+    senha = PasswordField('Senha', validators=[DataRequired(), Length(6, 20)])
+    confirmacao_senha = PasswordField('Confirmação da Senha', validators=[DataRequired(), EqualTo('senha')])
+    botao_submit_criarconta = SubmitField('Criar Conta')
+
+class FormLogin(FlaskForm):
+    email = StringField('E-mail', validators=[DataRequired(), Email()])
+    senha = PasswordField('Senha', validators=[DataRequired(), Length(6, 20)])
+    lembrar_dados = BooleanField('Lembrar Dados de Acesso')
+    botao_submit_login = SubmitField('Fazer Login')
+
+15 - No arquivo models.py deixá-lo assim: (na verdade só mudou a primeira linha)
+from comunidadeimpressionadora import database
+from datetime import datetime
+
+class Usuario(database.Model):
+    id = database.Column(database.Integer, primary_key=True)
+    username = database.Column(database.String, nullable=False)
+    email = database.Column(database.String, nullable=False, unique=True)
+    senha = database.Column(database.String, nullable=False)
+    foto_perfil = database.Column(database.String, default='default.jpg')
+    posts = database.relationship('Post', backref='autor', lazy=True)
+    cursos = database.Column(database.String, nullable=False, default='Não Informado')
+
+
+class Post(database.Model):
+    id = database.Column(database.Integer, primary_key=True)
+    titulo = database.Column(database.String, nullable=False)
+    corpo = database.Column(database.Text, nullable=False)
+    data_criacao = database.Column(database.DateTime, nullable=False, default=datetime.utcnow)
+    id_usuario = database.Column(database.Integer, database.ForeignKey('usuario.id'), nullable=False)
+
+16 - Recortar 'lista_usuarios = ['Lira', 'João', 'Alon', 'Alessandra', 'Amanda']' do arquivo __init__.py e colá-lo no arquivo routes.py
+
+17 - Inserir nas primeiras linhas do arquivo routes.py o código abaixo:
+from flask import render_template, redirect, url_for, flash, request
+from comunidadeimpressionadora import app
+from comunidadeimpressionadora.forms import FormLogin, FormCriarConta
+
+18 - Na última linha do arquivo __init__.py incluir o código abaixo:
+from comunidadeimpressionadora import routes
+
+Obs.: Diferente de outros arquivos, colocamos esse from na última linha do arquivo __init__.py porque ele precisa iniciar o app primeiro, e só após importar os routes para criá-los.
