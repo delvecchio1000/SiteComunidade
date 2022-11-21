@@ -1,0 +1,6 @@
+Para a criação de qualquer formulário devemos seguir os seguinte passos:
+
+1 - Criar o formulário dentro do arquivo forms.py
+2 - Inserí-lo no route, na função criar post
+3 - Criar um template HTML
+4 - Fazer ele interagir com um banco de dados, se necessário
