@@ -2,10 +2,6 @@
 
 {% block body %}
         <div class="container mt-3">
-            <h1 style="color: orange">Comunidade Impressionadora - Hashtag Treinamentos</h1>
-            <h2>Alunos, experts e a galera da Hashtag em um só lugar</h2>
-            <hr>
-            {% for post in posts %}
             <div class="row border mt-4 p-3 meupost">
                 <div class="col col-3"> <!– aqui vai ficar a imagem do usuário –>
                         <div>
@@ -24,10 +20,9 @@
                         </div>
                 </div>
                 <div class="col col-9"> <!– aqui vai ficar o Post do usuário –>
-                    <a style="text-decoration: none" href="{{ url_for('exibir_post', post_id=post.id) }}"><h4>{{ post.titulo }}</h4></a>
+                    <h4>{{ post.titulo }}</h4>
                     <p>{{ post.corpo }}</p>
                 </div>
             </div>
-            {% endfor %}
         </div>
 {% endblock %}
