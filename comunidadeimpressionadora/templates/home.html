@@ -1,8 +1,36 @@
 {% extends 'base.html' %}
 
 {% block body %}
-        <div class="container">
-            <h1>Meu Site está no ar. Agora sim</h1><p>Este Site está ficando legal</p>
-            <h2>Testando arquivo home</h2>
+
+        <div class="container mt-3">
+            <h1 style="color: orange">Comunidade Impressionadora - Hashtag Treinamentos</h1>
+            <h2>Alunos, experts e a galera da Hashtag em um só lugar</h2>
+            <hr>
+            {% for post in posts %}
+            <div class="row border mt-4 p-3 meupost">
+                <div class="col col-3"> <!– aqui vai ficar a imagem do usuário –>
+
+                        <div>
+                            <img src="{{ url_for('static', filename='fotos_perfil/{}'.format(post.autor.foto_perfil)) }}"
+                                 class="rounded"
+                                 width="200" >
+                        </div>
+                        <strong>{{ post.autor.username }}</strong>
+                        <div class="row justify-content-center">
+                                {% for curso in post.autor.cursos.split(';') %}
+                                    <button type="button"
+                                            class="btn btn-success mt-2"
+                                            disabled>{{ curso }}
+                                    </button>
+                                {% endfor %}
+                        </div>
+
+                </div>
+                <div class="col col-9"> <!– aqui vai ficar o Post do usuário –>
+                    <h4>{{ post.titulo }}</h4>
+                    <p>{{ post.corpo }}</p>
+                </div>
+            </div>
+            {% endfor %}
         </div>
 {% endblock %}
