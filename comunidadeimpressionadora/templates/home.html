@@ -10,7 +10,7 @@
                 <div class="col col-3"> <!– aqui vai ficar a imagem do usuário –>
                         <div>
                             <img src="{{ url_for('static', filename='fotos_perfil/{}'.format(post.autor.foto_perfil)) }}"
-                                 class="rounded"
+                                 class="rounded img-fluid"
                                  width="200" >
                         </div>
                         <strong>{{ post.autor.username }}</strong>
