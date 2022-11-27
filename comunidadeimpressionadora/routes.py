@@ -9,6 +9,13 @@ from flask_login import login_user, logout_user, current_user, login_required
 import secrets
 import os
 from PIL import Image
+from datetime import datetime
+from pytz import timezone
+
+data_hora_atuais = datetime.now();fuso_horario = timezone('America/Sao_Paulo')
+data_hora_sp = data_hora_atuais.astimezone(fuso_horario)
+data_hora_sp_texto = data_hora_sp.strftime('%d/%m/%y %H:%M')
+
 
 @app.route('/')
 def home():
@@ -135,6 +142,8 @@ def editar_perfil():
     foto_perfil = url_for('static', filename='fotos_perfil/{}'.format(current_user.foto_perfil))
     return render_template('editarperfil.html', foto_perfil=foto_perfil, form=form)
 
+
+
 @app.route('/post/<post_id>', methods=['GET', 'POST']) #esta função vai gerenciar todos os posts que possam aparecer
 @login_required
 def exibir_post(post_id):
@@ -153,7 +162,9 @@ def exibir_post(post_id):
             return redirect(url_for('home'))
     else:
         form = None
-    return render_template('post.html', post=post, form=form)
+    return render_template('post.html', post=post, form=form, data_hora_sp_texto=data_hora_sp_texto)
+
+
 
 @app.route('/post/<post_id>/excluir', methods=['GET', 'POST'])
 @login_required

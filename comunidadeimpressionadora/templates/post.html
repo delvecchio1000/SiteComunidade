@@ -21,7 +21,7 @@
                 </div>
                 <div class="col col-9"> <!– aqui vai ficar o Post do usuário –>
                     <h4>{{ post.titulo }}
-                        <small class="text-muted" style="font-size: 15px">&#160 Data de criação: {{ post.data_criacao.strftime('%d/%m/%Y, %H:%M') }}
+                        <small class="text-muted" style="font-size: 15px">&#160 Data de criação: {{ data_hora_sp_texto }}
                             {% if form %}
                             &#160 <a href="#form_editarpost">Editar Post</a> / <a href="#" class="text-danger" data-bs-toggle="modal" data-bs-target="#ExcluirPost">Excluir Post</a>
                             {% endif %}
