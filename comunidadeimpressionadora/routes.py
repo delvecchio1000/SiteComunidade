@@ -12,25 +12,24 @@ from PIL import Image
 from datetime import datetime
 from pytz import timezone
 
-data_hora_atuais = datetime.now();fuso_horario = timezone('America/Sao_Paulo')
-data_hora_sp = data_hora_atuais.astimezone(fuso_horario)
-data_hora_sp_texto = data_hora_sp.strftime('%d/%m/%y %H:%M')
-
 
 @app.route('/')
 def home():
     posts = Post.query.order_by(Post.id.desc())
     return render_template('home.html', posts=posts)
 
+
 @app.route('/contato')
 def contato():
     return render_template('contato.html')
+
 
 @app.route('/usuarios')
 @login_required
 def usuarios():
     lista_usuarios = Usuario.query.all()
     return render_template('usuarios.html', lista_usuarios=lista_usuarios)
+
 
 @app.route('/login', methods=['GET', 'POST'])
 def login():
@@ -42,7 +41,7 @@ def login():
         if usuario and bcrypt.check_password_hash(usuario.senha, form_login.senha.data):
             login_user(usuario, remember=form_login.lembrar_dados.data)
             flash(f'Login feito com sucesso no e-mail: {form_login.email.data}', 'alert-success')
-            par_next = request.args.get('next')  # par_next (leia-se parâmetro next, que é a pagina que o usuário queria acessar antes do login)
+            par_next = request.args.get('next')  # par_next: página que o usuário queria acessar antes do login)
             if par_next:
                 return  redirect(par_next)
             else:
@@ -62,6 +61,7 @@ def login():
         return redirect(url_for('home'))
     return render_template('login.html', form_login=form_login, form_criarconta=form_criarconta)
 
+
 @app.route('/sair')
 @login_required
 def sair():
@@ -69,11 +69,13 @@ def sair():
     flash(f'Logout feito com sucesso', 'alert-success')
     return redirect(url_for('home'))
 
+
 @app.route('/perfil')
 @login_required
 def perfil():
     foto_perfil = url_for('static', filename='fotos_perfil/{}'.format(current_user.foto_perfil))
     return render_template('perfil.html', foto_perfil=foto_perfil)
+
 
 @app.route('/post/criar', methods=['GET', 'POST'])
 @login_required
@@ -87,20 +89,21 @@ def criar_post():
         return redirect(url_for('home'))
     return render_template('criarpost.html', form=form)
 
+
 def salvar_imagem(imagem):
     # adicionar um código aleatório no nome da imagem
-    codigo = secrets.token_hex(8) #gera um código de 8 bytes
+    codigo = secrets.token_hex(8) # gera um código de 8 bytes
     # separar o nome do arquivo da extensão dele
     nome, extensao = os.path.splitext(imagem.filename)
-    #agora juntando o nome+código+extensão
-    #nome_completo = os.path.join(nome, codigo, extensao)
+    # agora juntando o nome+código+extensão
+    # nome_completo = os.path.join(nome, codigo, extensao)
     nome_arquivo = nome + codigo + extensao
-    #agora preciso estabelecer o caminho de onde a imagem se encontra
+    # agora preciso estabelecer o caminho de onde a imagem se encontra
     caminho_completo = os.path.join(app.root_path, 'static/fotos_perfil', nome_arquivo)
     # reduzir o tamanho da imagem. Será uma tupla (tamanho x altura)
-    tamanho = (200,200) #Primeiro definir essa tupla. São as dimensões da imagem definidas lá no nosso perfil.html
-    #reduzindo efetivamente. Mas...
-    #Temos que instalar o 'Pillow' (pip install Pillow). É uma biblioteca para compactar imagem
+    tamanho = (200,200) # Primeiro definir essa tupla. São as dimensões da imagem definidas lá no nosso perfil.html
+    # reduzindo efetivamente. Mas...
+    # Temos que instalar o 'Pillow' (pip install Pillow). É uma biblioteca para compactar imagem
     imagem_reduzida = Image.open(imagem)
     imagem_reduzida.thumbnail(tamanho)
     # salvar a imagem na pasta fotos_perfil
@@ -108,14 +111,15 @@ def salvar_imagem(imagem):
     # mudar o campo foto_perfil do usuário para o novo nome da imagem
     return nome_arquivo
 
+
 def atualizar_cursos(form):
     lista_cursos = []
     for campo in form:
        if 'curso_' in campo.name:
-           if campo.data:
-           #adicionar o texto do campo.label (Excel Impressionador) na lista de cursos
+           if campo.data: # adicionar o texto do campo.label (Excel Impressionador) na lista de cursos
             lista_cursos.append(campo.label.text)
     return ';'.join(lista_cursos)
+
 
 @app.route('/perfil/editar', methods=['GET', 'POST'])
 @login_required
@@ -125,32 +129,31 @@ def editar_perfil():
         current_user.email = form.email.data
         current_user.username = form.username.data
         if form.foto_perfil.data:
-            #adicionar um código aleatório no nome da imagem
-            #reduzir o tamanho da imagem
-            #salvar a imagem na pasta fotos_perfil
-            #mudar o campo foto_perfil do usuário para o novo nome da imagem
-            #MAS TODOS ESSES PASSOS ACIMA SE RESUMEM NO FUNÇÃO DA LINHA 76
+            # adicionar um código aleatório no nome da imagem
+            # reduzir o tamanho da imagem
+            # salvar a imagem na pasta fotos_perfil
+            # mudar o campo foto_perfil do usuário para o novo nome da imagem
+            # MAS TODOS ESSES PASSOS ACIMA SE RESUMEM NO FUNÇÃO DA LINHA 76
             nome_imagem = salvar_imagem(form.foto_perfil.data)
             current_user.foto_perfil = nome_imagem
         current_user.cursos = atualizar_cursos(form)
         database.session.commit()
         flash(f'Perfil atualizado com sucesso', 'alert-success')
         return redirect(url_for('perfil'))
-    elif request.method == "GET": #vai preencher automaticamente os campos Nome usuário e e-mail, na página editar perfil
+    elif request.method == "GET": # preenchimento autom. dos campos Nome usuário e e-mail, na página editar perfil
         form.email.data = current_user.email
         form.username.data = current_user.username
     foto_perfil = url_for('static', filename='fotos_perfil/{}'.format(current_user.foto_perfil))
     return render_template('editarperfil.html', foto_perfil=foto_perfil, form=form)
 
 
-
-@app.route('/post/<post_id>', methods=['GET', 'POST']) #esta função vai gerenciar todos os posts que possam aparecer
+@app.route('/post/<post_id>', methods=['GET', 'POST']) # esta função vai gerenciar todos os posts que possam aparecer
 @login_required
 def exibir_post(post_id):
     post = Post.query.get(post_id)
     if current_user == post.autor:
         form = FormCriarPost()
-        #lógica de editar post
+        # lógica de editar post
         if request.method == 'GET':
             form.titulo.data = post.titulo
             form.corpo.data = post.corpo
@@ -162,8 +165,7 @@ def exibir_post(post_id):
             return redirect(url_for('home'))
     else:
         form = None
-    return render_template('post.html', post=post, form=form, data_hora_sp_texto=data_hora_sp_texto)
-
+    return render_template('post.html', post=post, form=form)
 
 
 @app.route('/post/<post_id>/excluir', methods=['GET', 'POST'])
