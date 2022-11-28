@@ -9,8 +9,6 @@ from flask_login import login_user, logout_user, current_user, login_required
 import secrets
 import os
 from PIL import Image
-from datetime import datetime
-from pytz import timezone
 
 
 @app.route('/')
